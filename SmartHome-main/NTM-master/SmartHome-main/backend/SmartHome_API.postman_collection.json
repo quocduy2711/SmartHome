@@ -1,0 +1,424 @@
+{
+  "info": {
+    "name": "Smart Home API",
+    "_postman_id": "smarthome-api-collection",
+    "description": "API collection for Smart Home IoT Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:5000" },
+    { "key": "token",   "value": "" }
+  ],
+  "item": [
+    {
+      "name": "🔑 Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\",\n  \"email\": \"admin@smarthome.com\",\n  \"role\": \"admin\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.token) { pm.collectionVariables.set('token', res.token); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/auth/me",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/auth/change-password",
+            "header": [
+              { "key": "x-auth-token",  "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "📟 Devices",
+      "item": [
+        {
+          "name": "Get All Devices",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/api/devices",
+              "query": [
+                { "key": "type",     "value": "",       "disabled": true },
+                { "key": "location", "value": "",       "disabled": true },
+                { "key": "status",   "value": "online", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Get All Lights",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/devices?type=light",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Get All Fans",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/devices?type=fan",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Get Device By ID",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Get Device History",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}/history?limit=20",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Get Device Command Logs",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}/logs",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Add New Light",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const res = pm.response.json();",
+                  "if (res.data && res.data._id) { pm.collectionVariables.set('deviceId', res.data._id); }"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices",
+            "header": [
+              { "key": "x-auth-token", "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Đèn Phòng Khách\",\n  \"type\": \"light\",\n  \"location\": \"Living Room\",\n  \"mqttTopic\": \"smarthome/device/light001\",\n  \"state\": { \"isOn\": false, \"brightness\": 100 }\n}"
+            }
+          }
+        },
+        {
+          "name": "Add New Fan",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices",
+            "header": [
+              { "key": "x-auth-token", "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Quạt Phòng Ngủ\",\n  \"type\": \"fan\",\n  \"location\": \"Bedroom\",\n  \"mqttTopic\": \"smarthome/device/fan001\",\n  \"state\": { \"isOn\": false, \"speed\": 0 }\n}"
+            }
+          }
+        },
+        {
+          "name": "Add Camera",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices",
+            "header": [
+              { "key": "x-auth-token", "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Camera Cửa Ra Vào\",\n  \"type\": \"camera\",\n  \"location\": \"Entrance\",\n  \"mqttTopic\": \"smarthome/camera/cam001\",\n  \"state\": { \"isOn\": true }\n}"
+            }
+          }
+        },
+        {
+          "name": "Add Temperature Sensor",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices",
+            "header": [
+              { "key": "x-auth-token", "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Cảm Biến Nhiệt Độ\",\n  \"type\": \"sensor\",\n  \"location\": \"Living Room\",\n  \"mqttTopic\": \"smarthome/sensor/temperature\",\n  \"state\": { \"currentValue\": null }\n}"
+            }
+          }
+        },
+        {
+          "name": "Toggle Device (Bật/Tắt)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}/toggle",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Control Device – Turn ON",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}/control",
+            "header": [
+              { "key": "x-auth-token", "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"turn_on\",\n  \"payload\": { \"isOn\": true }\n}"
+            }
+          }
+        },
+        {
+          "name": "Control Device – Turn OFF",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}/control",
+            "header": [
+              { "key": "x-auth-token", "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"turn_off\",\n  \"payload\": { \"isOn\": false }\n}"
+            }
+          }
+        },
+        {
+          "name": "Set Fan Speed",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}/control",
+            "header": [
+              { "key": "x-auth-token", "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"set_speed\",\n  \"payload\": { \"isOn\": true, \"speed\": 3 }\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Device (Admin)",
+          "request": {
+            "method": "PUT",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}",
+            "header": [
+              { "key": "x-auth-token", "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Đèn Phòng Khách (Updated)\",\n  \"location\": \"Living Room\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Delete Device (Admin)",
+          "request": {
+            "method": "DELETE",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "📊 Data & Analytics",
+      "item": [
+        {
+          "name": "Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/data/summary",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Sensor History (Temperature, last 50)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/data/history?type=temperature&limit=50",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Sensor History (Humidity)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/data/history?type=humidity&limit=30",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Camera Events (Face Detected)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/data/history?type=face_detected&limit=20",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Stats Chart (Temperature – last 24h)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/data/stats?type=temperature&hours=24",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Command Logs (All Devices)",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/data/logs?limit=50",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "👥 Users (Admin)",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/users",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "❤️ Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "⚠️ Error Cases",
+      "item": [
+        {
+          "name": "Login – Wrong Password (401)",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"wrongpassword\"\n}"
+            }
+          }
+        },
+        {
+          "name": "No Token – 401",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/devices"
+          }
+        },
+        {
+          "name": "Device Not Found – 404",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/devices/000000000000000000000000",
+            "header": [{ "key": "x-auth-token", "value": "{{token}}" }]
+          }
+        },
+        {
+          "name": "Toggle Missing Action – 400",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices/{{deviceId}}/control",
+            "header": [
+              { "key": "x-auth-token", "value": "{{token}}" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"payload\": { \"isOn\": true }\n}"
+            }
+          }
+        },
+        {
+          "name": "User Not Admin – 403",
+          "request": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/devices",
+            "header": [
+              { "key": "x-auth-token", "value": "USER_TOKEN_HERE" },
+              { "key": "Content-Type",  "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test\",\n  \"type\": \"light\",\n  \"mqttTopic\": \"test/topic\"\n}"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
